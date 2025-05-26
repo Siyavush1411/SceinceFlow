@@ -15,9 +15,8 @@
     <v-btn variant="text" to="/default">Главная</v-btn>
     <v-btn variant="text" to="/upload">Загрузить работу</v-btn>
     <v-btn variant="text" to="/stats">Статистика</v-btn>
-    <v-btn variant="text" to="/export">Экспорт</v-btn>
+    <v-btn variant="text" to="/handbook">Справочник</v-btn>
 
-    <!-- Блок профиля -->
     <v-avatar
       v-if="user"
       size="36"
@@ -25,17 +24,17 @@
     >
       <v-img src="/default-avatar.png"></v-img>
     </v-avatar>
-    <span v-if="user" class="ml-2 font-weight-medium white--text">
+    <v-btn :to="'/profile'" v-if="user" class="ml-2 font-weight-medium white--text">
       {{ user.first_name }} {{ user.last_name?.charAt(0) }}.
-    </span>
+    </v-btn>
 
-    <v-btn v-else variant="outlined" class="ml-4">Вход</v-btn>
+    <v-btn v-else :to="'/login'" variant="outlined" class="ml-4">Вход</v-btn>
   </v-app-bar>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import api from '@/config/api'
 
 const user = ref(null)
 
@@ -44,14 +43,15 @@ onMounted(async () => {
   if (!token) return
 
   try {
-    const res = await axios.get('/profile/', {
+    const res = await api.get('/profile/', {
       headers: {
         Authorization: `Bearer ${token}`
       }
     })
     user.value = res.data
+    localStorage.setItem('user_id', user.value.id)
   } catch (err) {
-    console.error('⛔ Профиль не получен:', err)
+    console.error('Профиль не получен:', err)
   }
 })
 </script>
