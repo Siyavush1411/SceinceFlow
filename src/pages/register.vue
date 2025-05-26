@@ -1,4 +1,13 @@
 <template>
+  <v-snackbar
+      v-model="successSnackbar"
+      color="sucsess"
+      timeout="2000"
+      top
+      right
+      absolute
+    ></v-snackbar>
+  {{ errorMessage }}
   <v-container class="fill-height">
     <v-row justify="center">
       <v-col cols="12" sm="8" md="6" lg="4">
@@ -66,6 +75,19 @@
                 class="mb-4"
               ></v-text-field>
 
+              <v-select
+                v-model="selectedStatus"
+                :items="selectStatusList"
+                item-title="name"
+                item-value="id"
+                label="Статус"
+                variant="outlined"
+                color="primary"
+                prepend-inner-icon="mdi-account-badge"
+                required
+                class="mb-4"
+              />
+
               <v-btn 
                 type="submit" 
                 block 
@@ -97,10 +119,13 @@
     </v-container>
   </template>
 
-  <script setup>
-  import { ref } from 'vue'
-  import api from '@/config/api'
-  import registerRules from './helpers/rules'
+<script setup>
+import { ref } from 'vue'
+import api from '@/config/api'
+import registerRules from './helpers/rules'
+import { showSnack } from './helpers/auth_helpers'
+import { useRouter } from 'vue-router'
+import router from '@/config/routings'
 
 const form = ref(null)
 const username = ref('')
@@ -110,15 +135,37 @@ const password = ref('')
 const confirmPassword = ref('')
 const loading = ref(false)
 const successSnackbar = ref(false)
+const successMessage = ref('')
+const errorMessage = ref('')
 
+const selectedStatus = ref(null)
+
+const selectStatusList = [
+  { id: 1, name: 'Преподаватель' },
+  { id: 2, name: 'Магистрант' },
+  { id: 3, name: 'Докторант' }
+]
 
 const submit = async () => {
-  res = await api.post('/register', {
-    'username': username.value,
-    'name': name.value,
-    'lastname': lastname.value,
-    'password': password.value
-  })
+  try{
+    res = await api.post('/register/', {
+      'username': username.value,
+      'first_name': name.value,
+      'last_name': lastname.value,
+      'password': password.value,
+      'status': selectedStatus.value 
+    })
+    successSnackbar.value = true
+    showSnack(successMessage, successSnackbar, "Регистрация прошла успешно!")
+    localStorage.setItem('access', res.data.token)
+    localStorage.setItem('username', username.value)
+
+    router.push('/default')
+
+  }
+  catch(error){
+    showSnack(errorMessage, successSnackbar, "Ошибка регистрации. Проверьте введенные данные.")
+  }
  }
 
 </script>
