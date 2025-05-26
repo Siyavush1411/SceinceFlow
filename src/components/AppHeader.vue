@@ -13,7 +13,7 @@
     <v-spacer></v-spacer>
 
     <v-btn variant="text" to="/default">Главная</v-btn>
-    <v-btn variant="text" to="/upload">Загрузить работу</v-btn>
+    <v-btn variant="text" to="/dashboard">Все работы</v-btn>
     <v-btn variant="text" to="/stats">Статистика</v-btn>
     <v-btn variant="text" to="/handbook">Справочник</v-btn>
 
