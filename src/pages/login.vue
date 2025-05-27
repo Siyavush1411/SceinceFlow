@@ -78,7 +78,6 @@ import { ref } from 'vue'
 import api from '@/config/api'
 import registerRules from './helpers/rules'
 import { showSnack } from './helpers/auth_helpers'
-import { useRouter } from 'vue-router'
 import router from '@/config/routings'
 
 const form = ref(null)
@@ -102,6 +101,7 @@ const submit = async () => {
       'username': username.value,
       'password': password.value,
     })
+    localStorage.setItem("access", res.data.access)
     router.push('/default')
   }
   catch(error){
