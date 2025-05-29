@@ -89,9 +89,9 @@ import { ref, computed, onMounted } from 'vue'
 import AppHeader from '@/components/AppHeader.vue'
 import AppFooter from '@/components/AppFooter.vue'
 import api from '@/config/api'
-import CategoryChart from '@/components/CategoryChart.vue'
-import RatingChart from '@/components/RatingChart.vue'
-import AuthorActivityChart from '@/components/AuthorActivityChart.vue'
+import CategoryChart from '@/components/statistics/CategoryChart.vue'
+import RatingChart from '@/components/statistics/RatingChart.vue'
+import AuthorActivityChart from '@/components/statistics/AuthorActivityChart.vue'
 import router from '@/config/routings'
 
 const headers = [
@@ -115,38 +115,18 @@ const categories = ref({})
 const loading = ref(false)
 
 const loadData = async () => {
-  try {
-    if (!localStorage.getItem('access')) {
-      router.push('/login')
-      return
-    }
-    
-    loading.value = true
-    const [worksRes, authorsRes, categoriesRes] = await Promise.all([
-      api.get('/scientufic-works/'),
-      api.get('/users/'),
-      api.get('/category/')
-    ])
-    
-    works.value = worksRes.data.results || []
-    const authorsData = authorsRes.data.results || []
-    const categoriesData = categoriesRes.data.results || []
-    
-    categories.value = categoriesData.reduce((acc, category) => {
-      acc[category.id] = category.category_name.trim()
-      return acc
-    }, {})
-
-    authors.value = authorsData.reduce((acc, author) => {
-      acc[author.id] = `${author.first_name} ${author.last_name}`.trim()
-      return acc
-    }, {})
-  } catch (error) {
-    console.error('Ошибка загрузки:', error)
-  } finally {
-    loading.value = false
+  loading.value = true
+  const [worksRes, authorsRes] = await Promise.all([
+    api.get('/scientufic-works/'),
+    api.get('/users/')
+  ])
+  
+  works.value = worksRes.data
+  authors.value = authorsRes.data.reduce((acc, author) => {
+    acc[author.id] = author.name
+    return acc
+  }, {})
   }
-}
 
 const filteredWorks = computed(() => {
   return works.value.filter(work => {
