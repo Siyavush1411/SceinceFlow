@@ -1,33 +1,25 @@
 <template>
   <apexchart
-    v-if="series[0].data.length"
     type="bar"
     height="400"
     :options="chartOptions"
     :series="series"
   ></apexchart>
-  <div v-else>Загрузка данных...</div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
-import VueApexCharts from 'vue3-apexcharts'
-
-const apexchart = VueApexCharts
 
 const props = defineProps({
   data: {
     type: Object,
-    default: () => ({
-      labels: [],
-      datasets: [{ data: [] }]
-    })
+    required: true
   }
 })
 
 const series = computed(() => [{
   name: 'Количество работ',
-  data: props.data.datasets[0]?.data || []
+  data: props.data.datasets[0].data
 }])
 
 const chartOptions = computed(() => ({
@@ -36,7 +28,7 @@ const chartOptions = computed(() => ({
     toolbar: { show: false }
   },
   xaxis: {
-    categories: props.data.labels || [],
+    categories: props.data.labels,
     title: { text: 'Авторы' },
     labels: {
       rotate: -45,

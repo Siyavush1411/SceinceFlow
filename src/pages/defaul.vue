@@ -16,11 +16,12 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router'
+import api from '@/config/api';
 
 import AppHeader from '@/components/AppHeader.vue';
 import HeroSection from '@/components/HeroSection.vue';
 import FeaturesSection from '@/components/FeaturesSection.vue';
-import StatsSection from '@/components/StatsSection.vue';
+import StatsSection from '@/components/statistics/StatsSection.vue';
 import RecentWorksSection from '@/components/RecentWorksSection.vue';
 import AppFooter from '@/components/AppFooter.vue';
 
@@ -55,12 +56,6 @@ const recentWorks = ref([
   }
 ]);
 
-onMounted(() => {
-  const token = localStorage.getItem('access')
-  if (!token) {
-    router.push('/login')
-  }
-})
 </script>
 
 <style scoped>

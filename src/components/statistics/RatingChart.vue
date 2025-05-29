@@ -1,14 +1,10 @@
 <template>
-  <ApexChart
-    v-if="hasData"
+  <apexchart
     type="line"
     height="300"
     :options="chartOptions"
     :series="series"
-  />
-  <div v-else class="no-data">
-    Нет данных для отображения
-  </div>
+  ></apexchart>
 </template>
 
 <script setup>
@@ -17,31 +13,23 @@ import { computed } from 'vue'
 const props = defineProps({
   data: {
     type: Object,
-    default: () => ({
-      labels: [],
-      datasets: [{ data: [] }]
-    })
+    required: true
   }
 })
 
 const series = computed(() => [{
   name: 'Рейтинг',
-  data: props.data.datasets[0]?.data || []
+  data: props.data.datasets[0].data
 }])
-
-const hasData = computed(() => 
-  series.value[0]?.data?.length > 0
-)
 
 const chartOptions = computed(() => ({
   chart: {
-    toolbar: { show: false },
-    zoom: { enabled: false }
+    type: 'line',
+    toolbar: { show: false }
   },
   xaxis: {
     categories: props.data.labels,
-    title: { text: 'Названия работ' },
-    labels: { rotate: -45 }
+    title: { text: 'Названия работ' }
   },
   yaxis: {
     title: { text: 'Рейтинг' },
