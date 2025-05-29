@@ -4,7 +4,6 @@
     
     <v-main>
       <v-container class="mt-4">
-        <!-- Фильтры -->
         <v-card class="mb-4 pa-4">
           <v-row dense>
             <v-col cols="12" md="3">
@@ -39,7 +38,6 @@
           </v-row>
         </v-card>
 
-        <!-- Таблица -->
         <v-card class="mb-4">
           <v-data-table
             :headers="headers"
@@ -50,10 +48,13 @@
             <template v-slot:item.author="{ item }">
               {{ getAuthorName(item.author) }}
             </template>
+            
+            <template v-slot:item.category="{ item }">
+              {{ categories[item.category] || `Категория ${item.category}` }}
+            </template>
           </v-data-table>
         </v-card>
 
-        <!-- Аналитика -->
         <v-row>
           <v-col cols="12" md="6">
             <v-card class="pa-4">
@@ -110,22 +111,34 @@ const filters = ref({
 
 const works = ref([])
 const authors = ref({})
+const categories = ref({})
 const loading = ref(false)
 
 const loadData = async () => {
   try {
-  if (!localStorage.getItem('access')){
-    router.push('/login')
-  }
+    if (!localStorage.getItem('access')) {
+      router.push('/login')
+      return
+    }
+    
     loading.value = true
-    const [worksRes, authorsRes] = await Promise.all([
+    const [worksRes, authorsRes, categoriesRes] = await Promise.all([
       api.get('/scientufic-works/'),
-      api.get('/users/')
+      api.get('/users/'),
+      api.get('/category/')
     ])
     
-    works.value = worksRes.data
-    authors.value = authorsRes.data.reduce((acc, author) => {
-      acc[author.id] = author.name
+    works.value = worksRes.data.results || []
+    const authorsData = authorsRes.data.results || []
+    const categoriesData = categoriesRes.data.results || []
+    
+    categories.value = categoriesData.reduce((acc, category) => {
+      acc[category.id] = category.category_name.trim()
+      return acc
+    }, {})
+
+    authors.value = authorsData.reduce((acc, author) => {
+      acc[author.id] = `${author.first_name} ${author.last_name}`.trim()
       return acc
     }, {})
   } catch (error) {
@@ -135,14 +148,25 @@ const loadData = async () => {
   }
 }
 
-
 const filteredWorks = computed(() => {
-  const rawWorks = Array.isArray(works.value) ? works.value : []
-
-  return rawWorks.filter(work => {
+  return works.value.filter(work => {
     return Object.entries(filters.value).every(([key, value]) => {
       if (!value) return true
+      
+      if (key === 'author') {
+        const authorIds = work.author
+        return authorIds.some(id => 
+          getAuthorName(id).toLowerCase().includes(value.toLowerCase())
+        ) 
+      }
+      
+      if (key === 'category') {
+        const categoryName = categories.value[work.category]?.toLowerCase() || ''
+        return categoryName.includes(value.toLowerCase())
+      }
+      
       const workValue = work[key]
+      
       if (typeof workValue === 'string') {
         return workValue.toLowerCase().includes(value.toLowerCase())
       }
@@ -151,12 +175,15 @@ const filteredWorks = computed(() => {
   })
 })
 
-
 const categoryData = computed(() => {
+  if (!works.value.length) return { labels: [], series: [] }
+  
   const counts = works.value.reduce((acc, work) => {
-    acc[work.category] = (acc[work.category] || 0) + 1
+    const categoryName = categories.value[work.category] || `Категория ${work.category}`
+    acc[categoryName] = (acc[categoryName] || 0) + 1
     return acc
   }, {})
+
   return {
     labels: Object.keys(counts),
     series: Object.values(counts)
@@ -172,11 +199,16 @@ const ratingData = computed(() => ({
 }))
 
 const authorActivityData = computed(() => {
+  if (!works.value.length) return { labels: [], datasets: [] }
+  
   const counts = works.value.reduce((acc, work) => {
-    const author = getAuthorName(work.author)
-    acc[author] = (acc[author] || 0) + 1
+    work.author.forEach(authorId => {
+      const author = getAuthorName(authorId)
+      acc[author] = (acc[author] || 0) + 1
+    })
     return acc
   }, {})
+
   return {
     labels: Object.keys(counts),
     datasets: [{
