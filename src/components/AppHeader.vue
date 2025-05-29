@@ -35,14 +35,17 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import api from '@/config/api'
+import router from '@/config/routings'
 
 const user = ref(null)
 
 onMounted(async () => {
-  const token = localStorage.getItem('access')
-  if (!token) return
-
   try {
+    const token = localStorage.getItem('access')
+    if (!token) {
+      router.push('/login')
+      return
+    }
     const res = await api.get('/profile/', {
       headers: {
         Authorization: `Bearer ${token}`
@@ -51,6 +54,10 @@ onMounted(async () => {
     user.value = res.data
     localStorage.setItem('user_id', user.value.id)
   } catch (err) {
+    if (err.response && err.response.status === 401) {
+      localStorage.removeItem('access')
+      router.push('/login')
+    }
     console.error('Профиль не получен:', err)
   }
 })
